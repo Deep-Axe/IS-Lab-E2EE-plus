@@ -1,3 +1,5 @@
+# double_ratchet.py (Modified for Demonstration)
+
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives import hmac
@@ -24,7 +26,6 @@ def DH(dh_pair, dh_pub):
     return dh_out
 
 def KDF_RK(rk, dh_out):
-    # rk is hkdf salt, dh_out is hkdf input key material
     if isinstance(rk, x25519.X25519PublicKey):
         rk_bytes = rk.public_bytes(
             encoding=serialization.Encoding.Raw,
@@ -77,7 +78,6 @@ class Header:
         self.n = n
     
     def serialize(self):
-        # Fixed serialization to handle integers properly
         pn_bytes = self.pn.to_bytes((self.pn.bit_length() + 7) // 8, 'big') if self.pn > 0 else b'\x00'
         n_bytes = self.n.to_bytes((self.n.bit_length() + 7) // 8, 'big') if self.n > 0 else b'\x00'
         return {
@@ -110,14 +110,16 @@ def RatchetEncrypt(state, plaintext, AD):
     state["CKs"], mk = KDF_CK(state["CKs"])
     header = HEADER(state["DHs"], state["PN"], state["Ns"])
     state["Ns"] += 1
-    return header, ENCRYPT_DOUB_RATCH(mk, plaintext, CONCAT(AD, header))
+    # ====================================================================
+    # DEMO MODIFICATION 1: Return the message key (mk) as well.
+    # ====================================================================
+    return header, ENCRYPT_DOUB_RATCH(mk, plaintext, CONCAT(AD, header)), mk
 
 def RatchetDecrypt(state, header, ciphertext, AD):
     plaintext = TrySkippedMessageKeys(state, header, ciphertext, AD)
     if plaintext != None:
         return plaintext
     
-    # Compare DH keys properly
     current_dh = x25519.X25519PublicKey.from_public_bytes(header.dh)
     if state["DHr"] is None or not _compare_dh_keys(current_dh, state["DHr"]):
         SkipMessageKeys(state, header.pn)
@@ -131,7 +133,6 @@ def RatchetDecrypt(state, header, ciphertext, AD):
     return unpadder.update(padded_plain_text) + unpadder.finalize()
 
 def _compare_dh_keys(key1, key2):
-    """Helper function to compare two X25519 public keys"""
     if key1 is None or key2 is None:
         return False
     key1_bytes = key1.public_bytes(
@@ -145,7 +146,19 @@ def _compare_dh_keys(key1, key2):
     return key1_bytes == key2_bytes
 
 def TrySkippedMessageKeys(state, header, ciphertext, AD):
-    key = (header.dh, header.n)
+    # Ensure the key is constructed correctly for lookup
+    dh_bytes = header.dh
+    key = (dh_bytes, header.n)
+
+    # Check against serialized keys if necessary
+    if key not in state["MKSKIPPED"]:
+        for k_tuple, v in state["MKSKIPPED"].items():
+            if isinstance(k_tuple[0], x25519.X25519PublicKey):
+                 k_bytes = k_tuple[0].public_bytes(encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw)
+                 if k_bytes == dh_bytes and k_tuple[1] == header.n:
+                     key = k_tuple
+                     break
+
     if key in state["MKSKIPPED"]:
         mk = state["MKSKIPPED"][key]
         del state["MKSKIPPED"][key]
@@ -161,11 +174,7 @@ def SkipMessageKeys(state, until):
     if state["CKr"] != None:
         while state["Nr"] < until:
             state["CKr"], mk = KDF_CK(state["CKr"])
-            DHr_bytes = state["DHr"].public_bytes(
-                encoding=serialization.Encoding.Raw,
-                format=serialization.PublicFormat.Raw
-            )
-            state["MKSKIPPED"][(DHr_bytes, state["Nr"])] = mk
+            state["MKSKIPPED"][(state["DHr"], state["Nr"])] = mk
             state["Nr"] += 1
 
 def DHRatchet(state, header):
@@ -202,11 +211,11 @@ def ENCRYPT_DOUB_RATCH(mk, plaintext, associated_data):
     ciphertext = encryptor.update(padded_plaintext) + encryptor.finalize()
 
     ad, header = associated_data
-    pk, pn_bytes, n_bytes = header.dh, header.pn, header.n
+    # Use header attributes directly
+    pk, pn_val, n_val = header.dh, header.pn, header.n
     
-    # Convert integers to bytes for concatenation
-    pn_bytes = pn_bytes.to_bytes((pn_bytes.bit_length() + 7) // 8, 'big') if pn_bytes > 0 else b'\x00'
-    n_bytes = n_bytes.to_bytes((n_bytes.bit_length() + 7) // 8, 'big') if n_bytes > 0 else b'\x00'
+    pn_bytes = pn_val.to_bytes((pn_val.bit_length() + 7) // 8, 'big') if pn_val > 0 else b'\x00'
+    n_bytes = n_val.to_bytes((n_val.bit_length() + 7) // 8, 'big') if n_val > 0 else b'\x00'
     
     assoc_data = ad + pk + pn_bytes + n_bytes
 
@@ -237,13 +246,11 @@ def DECRYPT_DOUB_RATCH(mk, cipherout, associated_data):
     auth_key = hkdf_out[32:64]
     iv = hkdf_out[64:]
 
-    # Verify MAC first
     h = hmac.HMAC(auth_key, hashes.SHA256())
     
     ad, header = associated_data
     pk, pn, n = header.dh, header.pn, header.n
     
-    # Convert integers to bytes for concatenation
     pn_bytes = pn.to_bytes((pn.bit_length() + 7) // 8, 'big') if pn > 0 else b'\x00'
     n_bytes = n.to_bytes((n.bit_length() + 7) // 8, 'big') if n > 0 else b'\x00'
     
@@ -259,14 +266,12 @@ def DECRYPT_DOUB_RATCH(mk, cipherout, associated_data):
     except:
         raise Exception("MAC verification failed")
 
-    # Decrypt after MAC verification
     cipher = Cipher(algorithms.AES256(enc_key), modes.CBC(iv))
     decryptor = cipher.decryptor()
     plaintext = decryptor.update(ciphertext) + decryptor.finalize()
 
     return plaintext
 
-# Initialize Double Ratchet state for sending user
 def RatchetInitSender(SK, bob_public_key):
     state = {
         "DHs": GENERATE_DH(),
@@ -282,7 +287,6 @@ def RatchetInitSender(SK, bob_public_key):
     state["RK"], state["CKs"] = KDF_RK(state["RK"], DH(state["DHs"], state["DHr"]))
     return state
 
-# Initialize Double Ratchet state for receiving user  
 def RatchetInitReceiver(SK, alice_public_key):
     state = {
         "DHs": GENERATE_DH(),
@@ -298,73 +302,55 @@ def RatchetInitReceiver(SK, alice_public_key):
     return state
 
 class DoubleRatchetSession:
-    """Object-oriented wrapper for Double Ratchet state management"""
-    
     def __init__(self):
         self.state = None
         self.initialized = False
     
     def init_alice(self, private_key, bob_public_key):
-        """Initialize as Alice (sender)"""
-        # Use a default shared secret for demo (in real use, this comes from X3DH)
         shared_secret = b"default_shared_secret_32_bytes!!"[:32]
         self.state = RatchetInitSender(shared_secret, bob_public_key)
         self.initialized = True
     
     def init_alice_with_shared_key(self, shared_key, bob_public_key):
-        """Initialize as Alice with specific shared key"""
         self.state = RatchetInitSender(shared_key, bob_public_key)
         self.initialized = True
     
     def init_bob(self, shared_secret=None):
-        """Initialize as Bob (receiver) - will be completed when first message arrives"""
         if shared_secret is None:
             shared_secret = b"default_shared_secret_32_bytes!!"[:32]
         self.state = {
-            "DHs": GENERATE_DH(),
-            "DHr": None,  # Will be set when first message arrives
-            "RK": shared_secret,
-            "CKs": None,
-            "CKr": None,
-            "Ns": 0,
-            "Nr": 0,
-            "PN": 0,
-            "MKSKIPPED": {}
+            "DHs": GENERATE_DH(), "DHr": None, "RK": shared_secret,
+            "CKs": None, "CKr": None, "Ns": 0, "Nr": 0, "PN": 0, "MKSKIPPED": {}
         }
         self.initialized = True
     
     def init_bob_with_shared_key(self, shared_key):
-        """Initialize as Bob with specific shared key"""
         self.state = {
-            "DHs": GENERATE_DH(),
-            "DHr": None,  # Will be set when first message arrives
-            "RK": shared_key,
-            "CKs": None,
-            "CKr": None,
-            "Ns": 0,
-            "Nr": 0,
-            "PN": 0,
-            "MKSKIPPED": {}
+            "DHs": GENERATE_DH(), "DHr": None, "RK": shared_key,
+            "CKs": None, "CKr": None, "Ns": 0, "Nr": 0, "PN": 0, "MKSKIPPED": {}
         }
         self.initialized = True
     
     def ratchet_encrypt(self, plaintext):
-        """Encrypt a message"""
         if not self.initialized or self.state is None:
             raise ValueError("Session not initialized")
         
-        ad = b"double_ratchet_message"  # Associated data
-        header, ciphertext = RatchetEncrypt(self.state, plaintext.encode(), ad)
+        ad = b"double_ratchet_message"
         
-        # Return components needed for enhanced message format
-        return header, serialize(ciphertext[0]), serialize(ciphertext[1]), serialize(ad)
+        # ====================================================================
+        # DEMO MODIFICATION 2: Capture the returned message key.
+        # ====================================================================
+        header, ciphertext, message_key = RatchetEncrypt(self.state, plaintext.encode(), ad)
+        
+        # ====================================================================
+        # DEMO MODIFICATION 3: Return the message key from this method.
+        # ====================================================================
+        return header, serialize(ciphertext[0]), serialize(ciphertext[1]), serialize(ad), message_key
     
     def ratchet_decrypt(self, header, ciphertext, mac, ad):
-        """Decrypt a message"""
         if not self.initialized or self.state is None:
             raise ValueError("Session not initialized")
         
-        # Reconstruct ciphertext tuple
         ciphertext_bytes = deserialize(ciphertext)
         mac_bytes = deserialize(mac)
         ad_bytes = deserialize(ad)
@@ -375,15 +361,12 @@ class DoubleRatchetSession:
         return plaintext.decode()
     
     def get_state(self):
-        """Get current state for serialization"""
         if self.state is None:
             return None
         
-        # Convert X25519 keys to serializable format
         serializable_state = {}
         for key, value in self.state.items():
             if key == "DHs" and value:
-                # Serialize private key
                 private_bytes = value.private_bytes(
                     encoding=serialization.Encoding.Raw,
                     format=serialization.PrivateFormat.Raw,
@@ -391,37 +374,22 @@ class DoubleRatchetSession:
                 )
                 serializable_state[key] = serialize(private_bytes)
             elif key == "DHr" and value:
-                # Serialize public key
                 public_bytes = value.public_bytes(
                     encoding=serialization.Encoding.Raw,
                     format=serialization.PublicFormat.Raw
                 )
                 serializable_state[key] = serialize(public_bytes)
             elif key == "MKSKIPPED" and isinstance(value, dict):
-                # Handle MKSKIPPED dictionary with tuple keys
                 serializable_mkskipped = {}
                 for tuple_key, mk_val in value.items():
                     if isinstance(tuple_key, tuple) and len(tuple_key) == 2:
-                        dh_key, n_val = tuple_key
-                        # Convert tuple key to string
-                        if hasattr(dh_key, 'public_bytes'):
-                            # It's a public key object
-                            dh_bytes = dh_key.public_bytes(
-                                encoding=serialization.Encoding.Raw,
-                                format=serialization.PublicFormat.Raw
-                            )
-                            key_str = f"{serialize(dh_bytes)}:{n_val}"
-                        elif isinstance(dh_key, bytes):
-                            key_str = f"{serialize(dh_key)}:{n_val}"
-                        else:
-                            key_str = f"{str(dh_key)}:{n_val}"
-                        
-                        # Serialize the message key if it's bytes
-                        serializable_mkskipped[key_str] = serialize(mk_val) if isinstance(mk_val, bytes) else mk_val
-                    else:
-                        # Fallback for non-tuple keys
-                        serializable_mkskipped[str(tuple_key)] = serialize(mk_val) if isinstance(mk_val, bytes) else mk_val
-                        
+                        dh_key_obj, n_val = tuple_key
+                        dh_key_bytes = dh_key_obj.public_bytes(
+                            encoding=serialization.Encoding.Raw,
+                            format=serialization.PublicFormat.Raw
+                        )
+                        key_str = f"{serialize(dh_key_bytes)}:{n_val}"
+                        serializable_mkskipped[key_str] = serialize(mk_val)
                 serializable_state[key] = serializable_mkskipped
             elif isinstance(value, bytes):
                 serializable_state[key] = serialize(value)
@@ -431,47 +399,30 @@ class DoubleRatchetSession:
         return serializable_state
     
     def restore_state(self, serializable_state):
-        """Restore state from serialized format"""
         if serializable_state is None:
             return
         
         self.state = {}
         for key, value in serializable_state.items():
             if key == "DHs" and value:
-                # Deserialize private key
                 private_bytes = deserialize(value)
                 self.state[key] = x25519.X25519PrivateKey.from_private_bytes(private_bytes)
             elif key == "DHr" and value:
-                # Deserialize public key
                 public_bytes = deserialize(value)
                 self.state[key] = x25519.X25519PublicKey.from_public_bytes(public_bytes)
             elif key == "MKSKIPPED" and isinstance(value, dict):
-                # Restore MKSKIPPED dictionary with tuple keys
                 mkskipped_dict = {}
                 for key_str, mk_val in value.items():
-                    if ':' in key_str:
-                        # Split the string key back to tuple components
-                        parts = key_str.split(':', 1)  # Split only on first colon
-                        try:
-                            dh_bytes = deserialize(parts[0])
-                            n_val = int(parts[1])
-                            # Reconstruct the public key
-                            dh_key = x25519.X25519PublicKey.from_public_bytes(dh_bytes)
-                            tuple_key = (dh_key, n_val)
-                            # Deserialize the message key
-                            mkskipped_dict[tuple_key] = deserialize(mk_val) if isinstance(mk_val, str) else mk_val
-                        except:
-                            # If deserialization fails, skip this entry
-                            continue
-                    else:
-                        # Handle fallback cases
-                        try:
-                            mkskipped_dict[key_str] = deserialize(mk_val) if isinstance(mk_val, str) else mk_val
-                        except:
-                            mkskipped_dict[key_str] = mk_val
+                    try:
+                        dh_b64, n_str = key_str.split(':', 1)
+                        dh_bytes = deserialize(dh_b64)
+                        n_val = int(n_str)
+                        dh_key = x25519.X25519PublicKey.from_public_bytes(dh_bytes)
+                        mkskipped_dict[(dh_key, n_val)] = deserialize(mk_val)
+                    except:
+                        continue
                 self.state[key] = mkskipped_dict
             elif isinstance(value, str) and key in ["RK", "CKs", "CKr"]:
-                # Deserialize byte values
                 try:
                     self.state[key] = deserialize(value) if value else None
                 except:

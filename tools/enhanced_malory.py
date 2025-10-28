@@ -35,6 +35,15 @@ class EnhancedMalory:
             'mac_patterns': Counter(),
             'sequence_analysis': defaultdict(list)
         }
+
+    @staticmethod
+    def _sender_label(message):
+        sender = message.get('from')
+        if sender:
+            return sender
+        sealed = message.get('sealed_sender') or {}
+        hint = sealed.get('hint')
+        return f"sealed:{hint}" if hint else "sealed"
         
     def load_intercepted_messages(self, log_file='malory_logs/intercepted_messages.json'):
         """Load intercepted messages from server log"""
@@ -84,7 +93,7 @@ class EnhancedMalory:
             print(f"Message frequency: {len(sorted_messages) / (timestamps[-1] - timestamps[0] + 1):.2f} msg/sec")
         
         # Analyze communication patterns
-        senders = Counter(msg.get('from') for msg in sorted_messages)
+        senders = Counter(self._sender_label(msg) for msg in sorted_messages)
         receivers = Counter(msg.get('to') for msg in sorted_messages)
         
         print(f"\nSender distribution:")
@@ -145,7 +154,7 @@ class EnhancedMalory:
                     'dh_key_hash': dh_key_hash,
                     'sequence_n': header.n,
                     'previous_n': header.pn,
-                    'from': msg.get('from')
+                    'from': self._sender_label(msg)
                 })
                 
             except Exception as e:

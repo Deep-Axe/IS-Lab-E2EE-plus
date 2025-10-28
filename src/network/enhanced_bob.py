@@ -38,6 +38,8 @@ class EnhancedBobClient:
         self.client_socket: Optional[socket.socket] = None
         self.bob_session: Optional[DoubleRatchetSession] = None
         self.session_initialized = False
+        self.identity_key: Optional[x25519.X25519PrivateKey] = None
+        self.peer_identity_key: Optional[x25519.X25519PublicKey] = None
         
         # Client configuration
         self.client_id = "Bob"
@@ -74,6 +76,22 @@ class EnhancedBobClient:
                 self.bob_session = DoubleRatchetSession()
                 self.bob_session.restore_state(state_data['ratchet_state'])
                 self.session_initialized = True
+
+                sealed_state = state_data.get('sealed_sender', {})
+                identity_b64 = sealed_state.get('identity_private')
+                if identity_b64:
+                    try:
+                        identity_bytes = b64decode(identity_b64)
+                        self.identity_key = x25519.X25519PrivateKey.from_private_bytes(identity_bytes)
+                    except Exception:
+                        self.identity_key = None
+                peer_b64 = sealed_state.get('peer_identity_public')
+                if peer_b64:
+                    try:
+                        peer_bytes = b64decode(peer_b64)
+                        self.peer_identity_key = x25519.X25519PublicKey.from_public_bytes(peer_bytes)
+                    except Exception:
+                        self.peer_identity_key = None
                 
                 print("Bob: Session state restored successfully")
                 return True
@@ -95,7 +113,9 @@ class EnhancedBobClient:
             
             # First, generate Bob's keys and send his bundle to the server
             # so the server knows Bob is available for key exchange
-            bob_identity_key = self.x3dh_session.generate_identity_key()
+            if not self.identity_key:
+                self.identity_key = self.x3dh_session.generate_identity_key()
+            bob_identity_key = self.identity_key
             bob_prekey = self.x3dh_session.generate_prekey(1)
             
             # Create Bob's bundle
@@ -125,6 +145,11 @@ class EnhancedBobClient:
             if alice_message.get('type') == 'x3dh_key_exchange' and alice_message.get('from') == 'Alice':
                 alice_bundle = alice_message['bundle']
                 print("Bob received Alice's X3DH bundle")
+                try:
+                    alice_identity_bytes = b64decode(alice_bundle['identity_key'])
+                    self.peer_identity_key = x25519.X25519PublicKey.from_public_bytes(alice_identity_bytes)
+                except Exception:
+                    self.peer_identity_key = None
                 
                 # Perform X3DH as receiver
                 alice_identity_public = b64decode(alice_bundle['identity_key'])
@@ -239,6 +264,21 @@ class EnhancedBobClient:
                     'ratchet_state': self.bob_session.get_state(),
                     'last_updated': int(time.time())
                 }
+
+                sealed_state = {}
+                if self.identity_key:
+                    sealed_state['identity_private'] = b64encode(self.identity_key.private_bytes(
+                        encoding=serialization.Encoding.Raw,
+                        format=serialization.PrivateFormat.Raw,
+                        encryption_algorithm=serialization.NoEncryption()
+                    )).decode()
+                if self.peer_identity_key:
+                    sealed_state['peer_identity_public'] = b64encode(self.peer_identity_key.public_bytes(
+                        encoding=serialization.Encoding.Raw,
+                        format=serialization.PublicFormat.Raw
+                    )).decode()
+                if sealed_state:
+                    state_data['sealed_sender'] = sealed_state
                 
                 self.state_manager.save_state(self.client_id, state_data, self.state_password)
                 
@@ -278,8 +318,16 @@ class EnhancedBobClient:
                     
                     # Record message for replay protection
                     self.message_handler.record_message(message)
+                    sealed_sender = message.get('sealed_sender')
+                    sender_label = message.get('from', 'Unknown')
+                    if sealed_sender and self.identity_key:
+                        try:
+                            envelope = self.message_handler.open_sealed_sender_envelope(sealed_sender, self.identity_key)
+                            sender_label = envelope.get('sender_id', sender_label)
+                        except Exception as envelope_error:
+                            sender_label = f"Sealed sender error: {envelope_error}"
                     
-                    print(f"Bob received message from {message['from']}")
+                    print(f"Bob received message from {sender_label}")
                     print(f"  Message ID: {message['message_id']}")
                     print(f"  Age: {self.message_handler.get_message_age(message):.1f}s")
                     
@@ -392,8 +440,16 @@ class EnhancedBobClient:
                         
                         # Record message for replay protection
                         self.message_handler.record_message(message)
+                        sealed_sender = message.get('sealed_sender')
+                        sender_label = message.get('from', 'Unknown')
+                        if sealed_sender and self.identity_key:
+                            try:
+                                envelope = self.message_handler.open_sealed_sender_envelope(sealed_sender, self.identity_key)
+                                sender_label = envelope.get('sender_id', sender_label)
+                            except Exception as envelope_error:
+                                sender_label = f"Sealed sender error: {envelope_error}"
                         
-                        print(f"\n📨 New message from {message['from']}:")
+                        print(f"\n📨 New message from {sender_label}:")
                         print(f"   Message ID: {message['message_id']}")
                         print(f"   Age: {self.message_handler.get_message_age(message):.1f}s")
                         

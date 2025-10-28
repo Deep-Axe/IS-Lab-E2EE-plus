@@ -6,22 +6,22 @@
 
 ### Core Cryptographic Implementation
 
--  **Complete Double Ratchet Protocol** 
--  **X25519 Elliptic Curve Diffie-Hellman** 
--  **HKDF Root Key Derivation** - RFC 5869 compliant key derivation
--  **HMAC-SHA256 Chain Keys** - Secure chain key advancement
--  **AES-256-CBC Encryption** - Industry standard symmetric encryption
--  **Message Ordering & Skipping** - Handles out-of-order and lost messages
--  **Forward & Backward Secrecy** - Perfect secrecy properties
--  **Persistent State Management** - Encrypted state storage with PBKDF2
--  **Key Backup & Restore** - Secure session backup and recovery
--  **Enhanced Message Format** - Versioned messages with replay protection
--  **Comprehensive Error Handling** - Detailed error categorization and recovery
--  **Basic X3DH Integration** - Initial key agreement protocol
--  **Message Validation** - Timestamp and sequence validation
--  **Replay Attack Protection** - Message ID tracking and timestamp verification
--  **Retry & Recovery Logic** - Automatic error recovery and retry mechanisms
--  **Logging & Monitoring** - Comprehensive error tracking and statistics
+- **Complete Double Ratchet Protocol**
+- **X25519 Elliptic Curve Diffie-Hellman**
+- **HKDF Root Key Derivation** - RFC 5869 compliant key derivation
+- **HMAC-SHA256 Chain Keys** - Secure chain key advancement
+- **AES-256-CBC Encryption** - Industry standard symmetric encryption
+- **Message Ordering & Skipping** - Handles out-of-order and lost messages
+- **Forward & Backward Secrecy** - Perfect secrecy properties
+- **Persistent State Management** - Encrypted state storage with PBKDF2
+- **Key Backup & Restore** - Secure session backup and recovery
+- **Enhanced Message Format** - Versioned messages with replay protection
+- **Comprehensive Error Handling** - Detailed error categorization and recovery
+- **Basic X3DH Integration** - Initial key agreement protocol
+- **Message Validation** - Timestamp and sequence validation
+- **Replay Attack Protection** - Message ID tracking and timestamp verification
+- **Retry & Recovery Logic** - Automatic error recovery and retry mechanisms
+- **Logging & Monitoring** - Comprehensive error tracking and statistics
 
 ### Architecture Components
 
@@ -92,7 +92,6 @@
 - `error_handler.py` - Comprehensive error handling and recovery
 - `x3dh_integration.py` - Basic X3DH initial key agreement
 
-
 ## Usage Instructions
 
 ### 1. Enhanced Demo (Recommended)
@@ -120,6 +119,14 @@ python enhanced_bob.py
 ```bash
 python enhanced_malory.py
 ```
+
+**Optional - Web Dashboard (Consolidated View):**
+
+```bash
+python -m tools.dashboard --port 8080
+```
+
+Then open `http://localhost:8080/` to watch intercepted traffic, sealed-sender hints, and session statistics update in real time while Alice, Bob, and Malory are running.
 
 ### 2. Key Features Demonstrated
 
@@ -175,11 +182,11 @@ This enhanced implementation demonstrates:
 
 ### Educational Limitations
 
--  **Simplified X3DH**: Basic implementation without full prekey management
--  **Demo Certificate Validation**: No real certificate verification
--  **Local Storage Only**: No distributed key server integration
--  **Basic Replay Protection**: Simplified message ID tracking
--  **Educational Networking**: Not production-grade networking code
+- **Simplified X3DH**: Basic implementation without full prekey management
+- **Demo Certificate Validation**: No real certificate verification
+- **Local Storage Only**: No distributed key server integration
+- **Basic Replay Protection**: Simplified message ID tracking
+- **Educational Networking**: Not production-grade networking code
 
 ## Requirements
 
@@ -206,4 +213,3 @@ This codebase serves as a foundation for:
 - Cryptographic protocol implementation studies
 - Post-quantum cryptography adaptation research
 - Forward secrecy mechanism analysis
-
