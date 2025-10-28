@@ -1,4 +1,4 @@
-# Enhanced Double Ratchet Protocol Implementation (Educational)
+# Enhanced Double Ratchet Protocol Implementation 
 
 A comprehensive educational implementation of the Double Ratchet algorithm with **production-like enhancements** for advanced cryptographic learning. This system demonstrates not only the core Double Ratchet cryptographic primitives but also production-ready features like persistent state management, comprehensive error handling, X3DH key agreement, enhanced message protocols, and advanced cryptanalysis tools.
 
@@ -556,8 +556,7 @@ This implementation demonstrates cryptographically correct Double Ratchet primit
 - [Double Ratchet Algorithm Specification](https://signal.org/docs/specifications/doubleratchet/) by Trevor Perrin and Moxie Marlinspike
 - [X3DH Key Agreement Protocol](https://signal.org/docs/specifications/x3dh/)
 - [RFC 7748: Elliptic Curves for Security (X25519)](https://tools.ietf.org/html/rfc7748)
-- [RFC 5869: HMAC-based Extract-and-Expand Key Derivation Function (HKDF)](https://tools.ietf.org/html/rfc5869)
-- [Cryptography Engineering](https://www.schneier.com/books/cryptography_engineering/) by Ferguson, Schneier, and Kohno
+
 
 ---
 
