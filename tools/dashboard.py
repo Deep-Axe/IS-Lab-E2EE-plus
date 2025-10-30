@@ -21,14 +21,15 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 LOG_PATHS: Tuple[Path, ...] = (
     PROJECT_ROOT / "malory_logs" / "intercepted_messages.json",
     PROJECT_ROOT / "src" / "network" / "malory_logs" / "intercepted_messages.json",
+    PROJECT_ROOT / "src" / "network" / "malory_logs" / "intercepted_messages.ndjson",
 )
 
 INDEX_HTML = """<!DOCTYPE html>
-<html lang=\"en\">
+<html lang='en'>
 <head>
-<meta charset=\"utf-8\" />
+<meta charset='utf-8' />
 <title>E2EE Demo Dashboard</title>
-<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\" />
+<meta name='viewport' content='width=device-width,initial-scale=1' />
 <style>
 body { font-family: system-ui, sans-serif; margin: 0; background: #111827; color: #e5e7eb; }
 header { padding: 1.5rem; background: #1f2937; display: flex; flex-wrap: wrap; align-items: baseline; gap: 1rem; }
@@ -57,18 +58,18 @@ button:hover { background: #312e81; border-color: #c084fc; color: white; }
 <body>
 <header>
   <h1>IS-Lab E2EE Demo Dashboard</h1>
-  <div><button id=\"refresh-button\">Refresh now</button> <small id=\"last-refresh\"></small></div>
+  <div><button id='refresh-button'>Refresh now</button> <small id='last-refresh'></small></div>
 </header>
 <section>
-  <div class=\"card\">
+  <div class='card'>
     <h2>Live Status</h2>
-    <div id=\"status-grid\"></div>
-    <div id=\"status-message\" class=\"notice\" style=\"display:none; margin-top:1rem;\"></div>
+    <div id='status-grid'></div>
+    <div id='status-message' class='notice' style='display:none; margin-top:1rem;'></div>
   </div>
-  <div class=\"card\">
+  <div class='card'>
     <h2>Intercepted Messages</h2>
-    <div class=\"notice\" id=\"sealed-hint\">Sealed sender traffic will show sender hints (e.g., sealed:xxxx). Bob can decrypt envelopes to reveal identities; the server cannot.</div>
-    <div id=\"message-table-wrapper\">
+    <div class='notice' id='sealed-hint'>Sealed sender traffic will show sender hints (e.g., sealed:xxxx). Bob can decrypt envelopes to reveal identities; the server cannot.</div>
+    <div id='message-table-wrapper'>
       <table>
         <thead>
           <tr>
@@ -80,7 +81,7 @@ button:hover { background: #312e81; border-color: #c084fc; color: white; }
             <th>Flags</th>
           </tr>
         </thead>
-        <tbody id=\"message-body\"></tbody>
+        <tbody id='message-body'></tbody>
       </table>
     </div>
   </div>
@@ -95,7 +96,7 @@ const refreshButton = document.getElementById('refresh-button');
 function formatTimestamp(ts) {
   if (!ts) return '—';
   const date = new Date(ts);
-  return date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', second: '2-digit'}) + '\n' + date.toLocaleDateString();
+  return date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', second: '2-digit'}) + '\\n' + date.toLocaleDateString();
 }
 
 function renderStatus(data) {
@@ -136,11 +137,11 @@ function renderMessages(messages) {
     const tr = document.createElement('tr');
     const flagBadges = [];
     if (msg.sealed_sender) flagBadges.push('<span class="badge">sealed</span>');
-    if (msg.metadata?.encryption_algorithm) flagBadges.push(`<span class="tag">${msg.metadata.encryption_algorithm}</span>`);
+    if (msg.metadata && msg.metadata.encryption_algorithm) flagBadges.push('<span class="tag">' + msg.metadata.encryption_algorithm + '</span>');
     const fields = [
       messages.length - idx,
       formatTimestamp(msg.timestamp_ms),
-      `${msg.sender_label} → ${msg.to || '—'}`,
+      msg.sender_label + ' → ' + (msg.to || '—'),
       msg.sequence_number ?? '—',
       msg.message_id || '—',
       flagBadges.join(' ')
@@ -162,11 +163,11 @@ async function refreshAll() {
     ]);
     renderStatus(statusResp);
     renderMessages(messageResp.messages || []);
-    lastRefresh.textContent = `Last refresh: ${new Date().toLocaleTimeString()}`;
+    lastRefresh.textContent = 'Last refresh: ' + new Date().toLocaleTimeString();
   } catch (err) {
     statusMessage.style.display = 'block';
     statusMessage.classList.add('error');
-    statusMessage.textContent = `Dashboard error: ${err}`;
+    statusMessage.textContent = 'Dashboard error: ' + err;
   }
 }
 
@@ -176,13 +177,6 @@ refreshAll();
 </script>
 </body>
 </html>"""
-
-
-def locate_log_file() -> Path | None:
-    for candidate in LOG_PATHS:
-        if candidate.exists():
-            return candidate
-    return None
 
 
 def _sender_label(message: Dict[str, Any]) -> str:
@@ -195,29 +189,43 @@ def _sender_label(message: Dict[str, Any]) -> str:
 
 
 def load_messages(limit: int = 100) -> List[Dict[str, Any]]:
-    log_file = locate_log_file()
-    if not log_file:
-        return []
-
+  collected: List[Dict[str, Any]] = []
+  for path in LOG_PATHS:
+    if not path.exists():
+      continue
     try:
-        with log_file.open("r", encoding="utf-8") as handle:
-            lines = handle.readlines()
-    except OSError:
-        return []
-
-    messages: List[Dict[str, Any]] = []
-    for line in lines[-limit:]:
-        line = line.strip()
-        if not line:
+      with path.open("r", encoding="utf-8") as handle:
+        for line in handle:
+          line = line.strip()
+          if not line:
             continue
-        try:
+          try:
             record = json.loads(line)
-            messages.append(record)
-        except json.JSONDecodeError:
+          except json.JSONDecodeError:
             continue
+          record.setdefault("_source", str(path))
+          collected.append(record)
+    except OSError:
+      continue
 
-    messages.sort(key=lambda m: m.get("timestamp", 0))
-    return messages
+  if not collected:
+    return []
+
+  seen = set()
+  deduped: List[Dict[str, Any]] = []
+  for entry in sorted(collected, key=lambda m: m.get("timestamp", 0)):
+    key = (
+      entry.get("from"),
+      entry.get("to"),
+      entry.get("sequence_number"),
+      entry.get("message_id"),
+    )
+    if key in seen:
+      continue
+    seen.add(key)
+    deduped.append(entry)
+
+  return deduped[-limit:]
 
 
 def build_status(messages: List[Dict[str, Any]]) -> Dict[str, Any]:

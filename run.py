@@ -50,6 +50,7 @@ def main():
         'server': project_root / 'src' / 'network' / 'enhanced_server.py',
         'alice': project_root / 'src' / 'network' / 'enhanced_alice.py', 
         'bob': project_root / 'src' / 'network' / 'enhanced_bob.py',
+        'multi-client': project_root / 'src' / 'network' / 'enhanced_multi_client.py',
         'malory': project_root / 'tools' / 'interactive_malory.py',
         'demo': project_root / 'examples' / 'demo_enhanced_system.py',
         'simple-demo': project_root / 'examples' / 'demo_simple_working.py',

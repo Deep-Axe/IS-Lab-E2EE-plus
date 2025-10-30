@@ -1,0 +1,15 @@
+/data/pending
+/data/users
+!src/data/
+/src/data/users/*.json
+/src/network/malory_logs/*.json
+/src/network/malory_logs/*.jsonl
+/src/network/malory_logs/*.txt
+malory_logs/*.json
+malory_logs/*.jsonl
+malory_logs/*.txt
+__pycache__/
+*.pyc
+src/network/ratchet_states/*.enc
+src/network/malory_logs/intercepted_messages.json
+src/network/malory_logs/malory_analysis.txt

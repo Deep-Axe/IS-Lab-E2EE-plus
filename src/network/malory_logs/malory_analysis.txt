@@ -278,3 +278,344 @@ Status: Intercepted for cryptanalysis attempt
 Note: Double Ratchet forward secrecy should prevent decryption of future messages
 ============================================================
 
+
+============================================================
+MALORY'S INTERCEPTION LOG - 2025-10-28 08:01:00
+============================================================
+From: sealed -> To: alice
+Header: {'dh': 'WPPmpf5Bv09Ky+dEXp3UPRWPvtzu0zblOo8YqxzZe1g=', 'pn': 'AA==', 'n': 'AA=='}
+Ciphertext: 80CgCOBCgI6+LpJy/9PrWu+NOXuAzbQRMBwcNIezdLg=
+MAC: JDprxX045zFPp4Gj1W30pV25SiVUcYaA1p1uweOVFXc=
+Status: Intercepted for cryptanalysis attempt
+Note: Double Ratchet forward secrecy should prevent decryption of future messages
+============================================================
+
+============================================================
+MALORY'S INTERCEPTION LOG - 2025-10-28 08:01:25
+============================================================
+From: sealed -> To: alice
+Header: {'dh': 'WPPmpf5Bv09Ky+dEXp3UPRWPvtzu0zblOo8YqxzZe1g=', 'pn': 'AA==', 'n': 'AQ=='}
+Ciphertext: Gp4UVEQw8Pha5vlarv1d5Mr7HgT+8RDTwYm/ws9C57s=
+MAC: SjRER2DvT69Vnc1IxCkXypL4WNJjPptA4hhd0KcqVBc=
+Status: Intercepted for cryptanalysis attempt
+Note: Double Ratchet forward secrecy should prevent decryption of future messages
+============================================================
+
+============================================================
+MALORY'S INTERCEPTION LOG - 2025-10-28 08:04:46
+============================================================
+From: sealed -> To: alice
+Header: {'dh': 'WPPmpf5Bv09Ky+dEXp3UPRWPvtzu0zblOo8YqxzZe1g=', 'pn': 'AA==', 'n': 'Ag=='}
+Ciphertext: 02zKrRYrHsyqm8Gz9g92ezNUSJqI6aFIScDiWr9aaq0=
+MAC: OR1VzyrnZAv4rk2unN/pPuBFxCqXm4XJCAwhyKKgoNM=
+Status: Intercepted for cryptanalysis attempt
+Note: Double Ratchet forward secrecy should prevent decryption of future messages
+============================================================
+
+============================================================
+MALORY'S INTERCEPTION LOG - 2025-10-28 08:07:28
+============================================================
+From: sealed -> To: alice
+Header: {'dh': 'WPPmpf5Bv09Ky+dEXp3UPRWPvtzu0zblOo8YqxzZe1g=', 'pn': 'AA==', 'n': 'Aw=='}
+Ciphertext: gFrs5l8/+trpUy+RlH5BsmuVjS17esHJk97hHWJchqA=
+MAC: hgvbWlgZwbY0UxBMfLFy+9IpdUihYN0LWMqz7mT94UM=
+Status: Intercepted for cryptanalysis attempt
+Note: Double Ratchet forward secrecy should prevent decryption of future messages
+============================================================
+
+============================================================
+MALORY'S INTERCEPTION LOG - 2025-10-28 08:07:52
+============================================================
+From: sealed -> To: alice
+Header: {'dh': 'WPPmpf5Bv09Ky+dEXp3UPRWPvtzu0zblOo8YqxzZe1g=', 'pn': 'AA==', 'n': 'BA=='}
+Ciphertext: wFxG3aYwsxH9ltNttRztZH6xEFG2ffnHubkZUPIlSJw=
+MAC: 2y5ih6VxuPy5xPaX6tAyDtO8xpS8U+8k+pWigIJUEQs=
+Status: Intercepted for cryptanalysis attempt
+Note: Double Ratchet forward secrecy should prevent decryption of future messages
+============================================================
+
+============================================================
+MALORY'S INTERCEPTION LOG - 2025-10-28 08:12:17
+============================================================
+From: sealed -> To: alice
+Header: {'dh': 'WPPmpf5Bv09Ky+dEXp3UPRWPvtzu0zblOo8YqxzZe1g=', 'pn': 'AA==', 'n': 'BQ=='}
+Ciphertext: o73bAggd/qEauTVK9anYG+DvklsqB1UfOhgX5OGhs9I=
+MAC: KpR1o9MJxEh7iJMslUIaydrpUsIwlpYHjVdGFV18SB8=
+Status: Intercepted for cryptanalysis attempt
+Note: Double Ratchet forward secrecy should prevent decryption of future messages
+============================================================
+
+============================================================
+MALORY'S INTERCEPTION LOG - 2025-10-28 08:12:24
+============================================================
+From: sealed -> To: bob
+Header: {'dh': 'TgvqGuS8OSbV1UyFJMNYurBNVputUQwctrPmUogFxWA=', 'pn': 'AA==', 'n': 'Ag=='}
+Ciphertext: JZyJ/ztbdcd60v6QRznQxMkHu/nIFvk9g1nRmMxPgJM=
+MAC: pUaexwiWKVkZqppO5msI/pIrt46QL9rog8hPnL3C7I8=
+Status: Intercepted for cryptanalysis attempt
+Note: Double Ratchet forward secrecy should prevent decryption of future messages
+============================================================
+
+============================================================
+MALORY'S INTERCEPTION LOG - 2025-10-28 08:46:57
+============================================================
+From: sealed -> To: alice
+Header: {'dh': 'VpDDCGXsczA6roYHKvd8MqRXdEm/5Va83LvE6Ee6rzc=', 'pn': 'Bg==', 'n': 'Ag=='}
+Ciphertext: 5OBYKA5+joG5xfHrPi0a+co8Dcw1PfGK63uQIMmMwuA=
+MAC: oRj65h7y9DH2C8L9VVb4ohRU4WjGQ9efyCB4EPOftp8=
+Status: Intercepted for cryptanalysis attempt
+Note: Double Ratchet forward secrecy should prevent decryption of future messages
+============================================================
+
+============================================================
+MALORY'S INTERCEPTION LOG - 2025-10-28 08:47:18
+============================================================
+From: sealed -> To: bob
+Header: {'dh': 'TgvqGuS8OSbV1UyFJMNYurBNVputUQwctrPmUogFxWA=', 'pn': 'AA==', 'n': 'BQ=='}
+Ciphertext: PxpXDTYVLaSy6q8rDHPIUi2sQauLuVP8Wm7Qi1zx1lI=
+MAC: YXuY1yNddiUEU4XO/Dp1xuu+6xFsAB7RYejlGmOzfVg=
+Status: Intercepted for cryptanalysis attempt
+Note: Double Ratchet forward secrecy should prevent decryption of future messages
+============================================================
+
+============================================================
+MALORY'S INTERCEPTION LOG - 2025-10-28 08:48:09
+============================================================
+From: sealed -> To: alice
+Header: {'dh': 'VpDDCGXsczA6roYHKvd8MqRXdEm/5Va83LvE6Ee6rzc=', 'pn': 'Bg==', 'n': 'BQ=='}
+Ciphertext: eje3KRM5ETVjJMAUVhnzb4RTT7a9VgRrAAcGoXCKlOk=
+MAC: XBOKqMl+mrRiqOz4vlkVTnTZmk5aeiGe77YrVx3AgNI=
+Status: Intercepted for cryptanalysis attempt
+Note: Double Ratchet forward secrecy should prevent decryption of future messages
+============================================================
+
+============================================================
+MALORY'S INTERCEPTION LOG - 2025-10-28 08:48:13
+============================================================
+From: sealed -> To: bob
+Header: {'dh': '4K7KZyh51SQFyMv83Qi9WlZmkMsgyxR/ev5VR7zBh24=', 'pn': 'Bg==', 'n': 'AA=='}
+Ciphertext: 6WarNxA6GuXTvGPQpaUySjPAbGVMDUGZryz7+RlmF48=
+MAC: BnkuL3Ygc5f+KsQpSangDy0GmlZ1hC3M/fDscmz6ZUA=
+Status: Intercepted for cryptanalysis attempt
+Note: Double Ratchet forward secrecy should prevent decryption of future messages
+============================================================
+
+============================================================
+MALORY'S INTERCEPTION LOG - 2025-10-28 08:48:17
+============================================================
+From: sealed -> To: alice
+Header: {'dh': 'aWPQC+JrJk6zvdmVSYUSCT4DRnJrACKZ+rya0TaA5wU=', 'pn': 'Bg==', 'n': 'AA=='}
+Ciphertext: DQxwzGG1qT6XLDbjWnbWW4iNE+oLlhEOb/LmX4TmchU=
+MAC: EDzCbmxcdgNCFK+NdWgJ7AoFMnYS4iS9obyp71zxymQ=
+Status: Intercepted for cryptanalysis attempt
+Note: Double Ratchet forward secrecy should prevent decryption of future messages
+============================================================
+
+============================================================
+MALORY'S INTERCEPTION LOG - 2025-10-28 08:48:21
+============================================================
+From: sealed -> To: bob
+Header: {'dh': 'uL6r/bQ6lqDbB/sKEohAhwGb5uxBwjsokLMJ05Ez3ho=', 'pn': 'AQ==', 'n': 'AA=='}
+Ciphertext: JTO8CnyYc+vrlgQe3c9e3BDbdow9M/pjNi1dwxVFBGE=
+MAC: /qzaCV9mAn6j07hiKs7fQiluJ/S9jhii/8Xl+4u1XNo=
+Status: Intercepted for cryptanalysis attempt
+Note: Double Ratchet forward secrecy should prevent decryption of future messages
+============================================================
+
+============================================================
+MALORY'S INTERCEPTION LOG - 2025-10-28 08:48:36
+============================================================
+From: sealed -> To: alice
+Header: {'dh': 'C9O5G7A19sEC4Eog7Y6Jdh/E0j8JXYBaoJ9G64wRwk0=', 'pn': 'AQ==', 'n': 'AA=='}
+Ciphertext: J5bSSobfOivaZcMmSumgRc6LIZmtXq7VO7wCO8NxyPs=
+MAC: lgZE/LacXkiZqCsP05Zu79NLGhkLnFgHsKxCQaw2TRI=
+Status: Intercepted for cryptanalysis attempt
+Note: Double Ratchet forward secrecy should prevent decryption of future messages
+============================================================
+
+============================================================
+MALORY'S INTERCEPTION LOG - 2025-10-28 08:48:41
+============================================================
+From: sealed -> To: bob
+Header: {'dh': 'vvqIQh5WklEi/TuiCyrqkI0endBvpQVv3d+1f4RTWCw=', 'pn': 'AQ==', 'n': 'AA=='}
+Ciphertext: wXiuiq+LeKUe11C/A6n2gYOH+yQ/j/wxM986xz5Ruww=
+MAC: XNR6V8rclAoi+PUfDsQefktquEPw5DKVAzRmKfq9eDM=
+Status: Intercepted for cryptanalysis attempt
+Note: Double Ratchet forward secrecy should prevent decryption of future messages
+============================================================
+
+============================================================
+MALORY'S INTERCEPTION LOG - 2025-10-28 08:52:21
+============================================================
+From: sealed -> To: bob
+Header: {'dh': 'vvqIQh5WklEi/TuiCyrqkI0endBvpQVv3d+1f4RTWCw=', 'pn': 'AQ==', 'n': 'Aw=='}
+Ciphertext: b1kx5uyGvFhSdlAIUWxq60JO4o6kZ0DmQwM6jDH0FQU=
+MAC: Vqpww0BEa3w8soYBTvwI6YwyiwiWrlOeaCKG30vEiSw=
+Status: Intercepted for cryptanalysis attempt
+Note: Double Ratchet forward secrecy should prevent decryption of future messages
+============================================================
+
+============================================================
+MALORY'S INTERCEPTION LOG - 2025-10-28 08:52:24
+============================================================
+From: sealed -> To: alice
+Header: {'dh': 'S3W9YCR4aiYTw5byL3BXF1E78JgXl0u3lZthvrnaTE0=', 'pn': 'AQ==', 'n': 'Ag=='}
+Ciphertext: sqyd1ZoU7+pkl7dHpNCpJVAzupRKEde7RgNno9UZZ0I=
+MAC: zYjbB/TPpQ3Xy0ZIib4yTTUWC77kiErcLdn/jleC0+c=
+Status: Intercepted for cryptanalysis attempt
+Note: Double Ratchet forward secrecy should prevent decryption of future messages
+============================================================
+
+============================================================
+MALORY'S INTERCEPTION LOG - 2025-10-28 08:54:31
+============================================================
+From: sealed -> To: bob
+Header: {'dh': 'S+oPyBlKc7fVnNAK6eLJauaVj8ZCQZYcwrhGi69tH2s=', 'pn': 'BA==', 'n': 'AQ=='}
+Ciphertext: zFc8nrBrSFQvFHCGY/7OHmqZLGUr02Z9NRuT6aPH57I=
+MAC: 4gXxF6GGAb06gSZjSBxIqqpdQompv/BKIOPRA4/Tx2Y=
+Status: Intercepted for cryptanalysis attempt
+Note: Double Ratchet forward secrecy should prevent decryption of future messages
+============================================================
+
+============================================================
+MALORY'S INTERCEPTION LOG - 2025-10-28 08:57:25
+============================================================
+From: sealed -> To: alice
+Header: {'dh': 'D7jzvl/ZxtH8+jgvPeXE/Ls46UPpUj/Kmra0jj7hjTY=', 'pn': 'BA==', 'n': 'AA=='}
+Ciphertext: qtOdsscUHBYnRnHwVu162os7aBTmtdTgTH2Gxrc4dCA=
+MAC: 9v7c8KyhytdtKn3e6Xqrth7SDX4qqOMqvaD++X9f7k0=
+Status: Intercepted for cryptanalysis attempt
+Note: Double Ratchet forward secrecy should prevent decryption of future messages
+============================================================
+
+============================================================
+MALORY'S INTERCEPTION LOG - 2025-10-28 08:57:36
+============================================================
+From: sealed -> To: alice
+Header: {'dh': 'D7jzvl/ZxtH8+jgvPeXE/Ls46UPpUj/Kmra0jj7hjTY=', 'pn': 'BA==', 'n': 'AQ=='}
+Ciphertext: PgJeqXux9SqkRAcEbY1F/+2CRnm0mSD4h0TO9fnFwc8=
+MAC: FgwJNUCZmqCCP45roMQYesh7T6XD8YBKwtifLfk6OU4=
+Status: Intercepted for cryptanalysis attempt
+Note: Double Ratchet forward secrecy should prevent decryption of future messages
+============================================================
+
+============================================================
+MALORY'S INTERCEPTION LOG - 2025-10-28 08:57:38
+============================================================
+From: sealed -> To: alice
+Header: {'dh': 'D7jzvl/ZxtH8+jgvPeXE/Ls46UPpUj/Kmra0jj7hjTY=', 'pn': 'BA==', 'n': 'Ag=='}
+Ciphertext: I+WZ7u6ixk1dRAcrIPF1upVoiUh/hiTl5rwrKHCS3mc=
+MAC: NxuHPqPl94WauRhZg6n6E2xrWHZGzifjDgEMzYpiVMw=
+Status: Intercepted for cryptanalysis attempt
+Note: Double Ratchet forward secrecy should prevent decryption of future messages
+============================================================
+
+============================================================
+MALORY'S INTERCEPTION LOG - 2025-10-28 12:08:44
+============================================================
+From: sealed -> To: alice
+Header: {'dh': 'fdsYSx4deH5F+R/sADMKTXcnEYJbj2L1l4/bMkviYWA=', 'pn': 'AA==', 'n': 'AA=='}
+Ciphertext: NyQ6f3ht/3MqyC0nhuUQ3oOeShEPwKFvWu/1baGZPhY=
+MAC: Yn4uJjpiJeV3W5/5slvKtaQd0VmypFCkGKHweImtPL4=
+Status: Intercepted for cryptanalysis attempt
+Note: Double Ratchet forward secrecy should prevent decryption of future messages
+============================================================
+
+============================================================
+MALORY'S INTERCEPTION LOG - 2025-10-28 12:18:35
+============================================================
+From: sealed -> To: Deepam
+Header: {'dh': '7x/izAFsS3mLB6/TZqs+eK/6/AJj3QkZgfJoZKGV9mM=', 'pn': 'AA==', 'n': 'AQ=='}
+Ciphertext: 5BFaAlXnFaAZPd7O2wARgSCaRUr7hEHa8eR+VmDqjO8=
+MAC: r1qK0xArG9Ff02xZRr1GqUA+NQqMacPvxUtAEVZ+yKA=
+Status: Intercepted for cryptanalysis attempt
+Note: Double Ratchet forward secrecy should prevent decryption of future messages
+============================================================
+
+============================================================
+MALORY'S INTERCEPTION LOG - 2025-10-28 12:19:14
+============================================================
+From: sealed -> To: alice
+Header: {'dh': 'oM5OYJG5e64+AKOkqYDHReGsQHM+aKIQSxevAES1Z3c=', 'pn': 'AQ==', 'n': 'AQ=='}
+Ciphertext: Ds+OoXk4zMlK1QMED4O4dLiaYTNNngvQlbgp2ZMoBvI=
+MAC: S1YXpfYskGf37gmdTEZVOphty4R1hFfdq2kSyLNJ/6M=
+Status: Intercepted for cryptanalysis attempt
+Note: Double Ratchet forward secrecy should prevent decryption of future messages
+============================================================
+
+============================================================
+MALORY'S INTERCEPTION LOG - 2025-10-28 12:19:27
+============================================================
+From: sealed -> To: Deepam
+Header: {'dh': '7x/izAFsS3mLB6/TZqs+eK/6/AJj3QkZgfJoZKGV9mM=', 'pn': 'AA==', 'n': 'Ag=='}
+Ciphertext: 28q7HVjU/K0/nMek/HBy85/nQrhaFTEiQk3yHXjTqQU=
+MAC: RlcA8cLzFZSX2EDqMjfvAzsGhs6sCIs5gNtsX+V/Wis=
+Status: Intercepted for cryptanalysis attempt
+Note: Double Ratchet forward secrecy should prevent decryption of future messages
+============================================================
+
+============================================================
+MALORY'S INTERCEPTION LOG - 2025-10-28 12:20:42
+============================================================
+From: sealed -> To: bob
+Header: {'dh': 'BxeSZBEQ4qvCvdLqZMH+nr8424KZKWFDYWEMWhZgR3Q=', 'pn': 'AA==', 'n': 'AA=='}
+Ciphertext: dwWP+9t44OrQi4+3/LC58wN7ckTKA+kNf83Hu+dqsuI=
+MAC: y4mmuhrJ/Va+xFhfjQSx13AfhRhurBj5PJy/P8axP9Q=
+Status: Intercepted for cryptanalysis attempt
+Note: Double Ratchet forward secrecy should prevent decryption of future messages
+============================================================
+
+============================================================
+MALORY'S INTERCEPTION LOG - 2025-10-28 12:25:26
+============================================================
+From: sealed -> To: alice
+Header: {'dh': 'D7jzvl/ZxtH8+jgvPeXE/Ls46UPpUj/Kmra0jj7hjTY=', 'pn': 'BA==', 'n': 'Aw=='}
+Ciphertext: DasxHCSleuqH+yJ9VXpMtgikDF1zzN2FnMFl7y4qpR8=
+MAC: afTc7OGJ6AOyRI9QzuvWniTSSBB22wSivlNPDiOdivc=
+Status: Intercepted for cryptanalysis attempt
+Note: Double Ratchet forward secrecy should prevent decryption of future messages
+============================================================
+
+============================================================
+MALORY'S INTERCEPTION LOG - 2025-10-28 12:30:19
+============================================================
+From: sealed -> To: Deepam
+Header: {'dh': '7x/izAFsS3mLB6/TZqs+eK/6/AJj3QkZgfJoZKGV9mM=', 'pn': 'AA==', 'n': 'Aw=='}
+Ciphertext: 6dFjwLVU4ZWhmUaO1oz0mPVfb2iBuC8BxbKO2nzQDq4=
+MAC: hFeZxL+AP2IYCQCEKudk2BefIjzm/3CprHfJ4bMu99g=
+Status: Intercepted for cryptanalysis attempt
+Note: Double Ratchet forward secrecy should prevent decryption of future messages
+============================================================
+
+============================================================
+MALORY'S INTERCEPTION LOG - 2025-10-28 12:30:23
+============================================================
+From: sealed -> To: Deepam
+Header: {'dh': '7x/izAFsS3mLB6/TZqs+eK/6/AJj3QkZgfJoZKGV9mM=', 'pn': 'AA==', 'n': 'BA=='}
+Ciphertext: uZjMsNRtrV/3JPQR+ndsXYzQFxfIJIySLQyvhcGO9vw=
+MAC: 9j+SiRhjLJ+Dk8YkzQjXQ9wHwRYzjv4KXotYmn1fWVQ=
+Status: Intercepted for cryptanalysis attempt
+Note: Double Ratchet forward secrecy should prevent decryption of future messages
+============================================================
+
+============================================================
+MALORY'S INTERCEPTION LOG - 2025-10-28 12:31:08
+============================================================
+From: sealed -> To: alice
+Header: {'dh': 'oM5OYJG5e64+AKOkqYDHReGsQHM+aKIQSxevAES1Z3c=', 'pn': 'AQ==', 'n': 'Aw=='}
+Ciphertext: x81yYGW7K0EL43q0COAliSS+77ZVZQYaSR5LwkevyuM=
+MAC: GfSkIJuPAmh0NdyA0/UZU0YeRC9KbrxuIv0om5+4EHI=
+Status: Intercepted for cryptanalysis attempt
+Note: Double Ratchet forward secrecy should prevent decryption of future messages
+============================================================
+
+============================================================
+MALORY'S INTERCEPTION LOG - 2025-10-28 12:48:34
+============================================================
+From: sealed -> To: alice
+Header: {'dh': 'D7jzvl/ZxtH8+jgvPeXE/Ls46UPpUj/Kmra0jj7hjTY=', 'pn': 'BA==', 'n': 'BA=='}
+Ciphertext: D43PTWOSphM17yuzqEMaNQ+3dRIXay+8h64tPeuD+ko=
+MAC: jpo6dM43JmaGzIXVJa/sgj/lKyhDWMy2Kvqh9gUG02w=
+Status: Intercepted for cryptanalysis attempt
+Note: Double Ratchet forward secrecy should prevent decryption of future messages
+============================================================

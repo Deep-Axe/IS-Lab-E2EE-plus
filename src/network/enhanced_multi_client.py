@@ -1,11 +1,14 @@
 # enhanced_multi_client.py - Multi-contact E2EE client
 import json
+import os
+import re
 import socket
 import threading
 import time
 from base64 import b64decode, b64encode
 from dataclasses import dataclass, field
 from typing import Dict, Optional
+from getpass import getpass
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import x25519
@@ -15,7 +18,7 @@ try:
     from utils.error_handler import ErrorHandler
     from utils.message_handler import MessageHandler
     from utils.state_manager import StateManager
-    from security.x3dh_integration import X3DHPreKey, X3DHSession
+    from security.x3dh_integration import X3DHSession
 except ImportError:  # pragma: no cover
     import os
     import sys
@@ -36,13 +39,15 @@ class ContactSession:
     peer_identity_key: Optional[x25519.X25519PublicKey] = None
     pending_ephemeral: Optional[x25519.X25519PrivateKey] = None
     pending_shared_key: Optional[bytes] = None
-    pending_prekey: Optional[X3DHPreKey] = None
     role: Optional[str] = None
     handshake_event: threading.Event = field(default_factory=threading.Event)
     handshake_in_progress: bool = False
+    first_message_logged: bool = False
 
 
 class EnhancedMultiClient:
+    PASSWORD_PATTERN = re.compile(r"^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$")
+
     def __init__(self) -> None:
         self.error_handler = ErrorHandler()
         self.state_manager = StateManager(self.error_handler)
@@ -139,6 +144,8 @@ class EnhancedMultiClient:
         self.state_manager.save_state(self._identity_state_id(), data, self.state_password or "")
 
     def load_contact_session(self, contact: str) -> bool:
+        if not self.username:
+            raise RuntimeError("Client not initialized")
         session_id = self._session_state_id(contact)
         if not self.state_manager.state_exists(session_id):
             return False
@@ -151,12 +158,16 @@ class EnhancedMultiClient:
         if peer_b64:
             peer_bytes = b64decode(peer_b64)
             context.peer_identity_key = x25519.X25519PublicKey.from_public_bytes(peer_bytes)
+        context.role = stored.get("role")
         context.session_initialized = True
         context.handshake_event.set()
+        context.first_message_logged = bool(stored.get("first_message_logged", False))
         self._print(f"Restored session with {contact}")
         return True
 
     def save_contact_session(self, contact: str) -> None:
+        if not self.username:
+            raise RuntimeError("Client not initialized")
         context = self.contact_sessions.get(contact)
         if not context or not context.session or not context.session_initialized:
             return
@@ -166,6 +177,7 @@ class EnhancedMultiClient:
             "ratchet_state": context.session.get_state(),
             "role": context.role,
             "last_updated": int(time.time()),
+            "first_message_logged": context.first_message_logged,
         }
         if self.identity_key or context.peer_identity_key:
             sealed = {}
@@ -196,6 +208,8 @@ class EnhancedMultiClient:
         return self.contact_sessions[contact]
 
     def ensure_session(self, contact: str, timeout: float = 30.0) -> bool:
+        if not self.username:
+            raise RuntimeError("Client not initialized")
         context = self._get_or_create_context(contact)
         if context.session_initialized:
             return True
@@ -413,7 +427,27 @@ class EnhancedMultiClient:
             context.handshake_event.set()
 
     def _handle_encrypted_message(self, message: dict) -> None:
-        sender_label = message.get("from") or "unknown"
+        sender_label = message.get("from")
+        # Resolve sealed sender before retrieving session context so we map to actual contact
+        if (not sender_label or sender_label == "sealed") and message.get("sealed_sender") and self.identity_key:
+            try:
+                envelope = self.message_handler.open_sealed_sender_envelope(
+                    message["sealed_sender"], self.identity_key
+                )
+                extracted_id = envelope.get("sender_id")
+                if extracted_id:
+                    sender_label = extracted_id
+                    context = self._get_or_create_context(sender_label)
+                    if context.peer_identity_key is None and envelope.get("sender_identity"):
+                        try:
+                            peer_bytes = b64decode(envelope["sender_identity"])
+                            context.peer_identity_key = x25519.X25519PublicKey.from_public_bytes(peer_bytes)
+                        except Exception:
+                            pass
+            except Exception:
+                sender_label = sender_label or "unknown"
+
+        sender_label = sender_label or "unknown"
         context = self._get_or_create_context(sender_label)
         if not context.session_initialized or not context.session:
             if not self.load_contact_session(sender_label):
@@ -424,34 +458,17 @@ class EnhancedMultiClient:
             self._print(f"Session with {sender_label} is unavailable")
             return
         try:
-            if message.get("sealed_sender") and self.identity_key:
-                try:
-                    envelope = self.message_handler.open_sealed_sender_envelope(
-                        message["sealed_sender"], self.identity_key
-                    )
-                    extracted_id = envelope.get("sender_id")
-                    if extracted_id:
-                        sender_label = extracted_id
-                        context = self._get_or_create_context(sender_label)
-                        if not context.session_initialized or not context.session:
-                            if not self.load_contact_session(sender_label):
-                                self._print(
-                                    f"Received envelope from {sender_label} but no session is available"
-                                )
-                                return
-                            context = self._get_or_create_context(sender_label)
-                        if not context.session:
-                            self._print(f"Session with {sender_label} is unavailable")
-                            return
-                except Exception:
-                    pass
             valid, reason = self.message_handler.validate_message(message)
             if not valid:
                 self._print(f"Rejected message from {sender_label}: {reason}")
                 return
             self.message_handler.record_message(message)
             components = self.message_handler.extract_double_ratchet_components(message)
-            plaintext = context.session.ratchet_decrypt(
+            session_obj = context.session
+            if not session_obj:
+                self._print(f"Session with {sender_label} vanished")
+                return
+            plaintext = session_obj.ratchet_decrypt(
                 components["header"],
                 components["ciphertext"],
                 components["mac"],
@@ -475,9 +492,17 @@ class EnhancedMultiClient:
                 self._print("Username required")
                 return
             self.username = username
-            password = input("State password (leave blank for default): ").strip()
-            if not password:
-                password = f"{self.username}_state_password"
+            identity_exists = self.state_manager.state_exists(self._identity_state_id())
+            default_password = self._default_password()
+            while True:
+                password = getpass("State password (leave blank for default): ").strip()
+                if not password:
+                    password = default_password
+                if identity_exists or self._password_meets_requirements(password):
+                    break
+                self._print(
+                    "Password must be at least 8 characters, include letters, digits, and a special character."
+                )
             self.state_password = password
             if not self.connect():
                 return
@@ -551,6 +576,9 @@ class EnhancedMultiClient:
     def send_message(self, contact: str, plaintext: str) -> None:
         if not plaintext:
             return
+        if not self.username:
+            self._print("Client is not logged in")
+            return
         if not self.ensure_session(contact):
             self._print(f"Unable to establish session with {contact}")
             return
@@ -558,8 +586,14 @@ class EnhancedMultiClient:
         if not context.session:
             self._print(f"Session with {contact} is not ready")
             return
+        session_state = context.session.state if context.session else None
+        if not session_state or session_state.get("CKs") is None:
+            self._print(
+                f"Session with {contact} is waiting for their next message before you can send."
+            )
+            return
         try:
-            header, ciphertext, mac, ad, _ = context.session.ratchet_encrypt(plaintext)
+            header, ciphertext, mac, ad, message_key = context.session.ratchet_encrypt(plaintext)
             sealed = None
             if self.identity_key and context.peer_identity_key:
                 try:
@@ -581,6 +615,9 @@ class EnhancedMultiClient:
                 plaintext_content=plaintext,
                 sealed_sender=sealed,
             )
+            if header and header.n == 0 and not context.first_message_logged:
+                self._record_first_message_key(contact, header, ciphertext, mac, ad, message_key)
+                context.first_message_logged = True
             self._send_json(enhanced)
             self.save_contact_session(contact)
             self._print(f"Sent to {contact}: {plaintext}")
@@ -588,12 +625,53 @@ class EnhancedMultiClient:
             self.error_handler.handle_error(exc, "send_message")
             self._print(f"Failed to send message: {exc}")
 
+    def _record_first_message_key(
+        self,
+        contact: str,
+        header,
+        ciphertext_b64: str,
+        mac_b64: str,
+        ad_b64: str,
+        message_key: bytes,
+    ) -> None:
+        """Persist the very first outbound message key for Malory demos without console output."""
+        try:
+            os.makedirs("malory_logs", exist_ok=True)
+            ciphertext_bytes = b64decode(ciphertext_b64)
+            mac_bytes = b64decode(mac_b64)
+            ad_bytes = b64decode(ad_b64)
+            entry = {
+                "timestamp": int(time.time()),
+                "from": self.username,
+                "to": contact,
+                "sequence_number": header.n,
+                "message_id": f"first:{self.username}->{contact}",
+                "ciphertext_hex": ciphertext_bytes.hex(),
+                "mac_hex": mac_bytes.hex(),
+                "ad_hex": ad_bytes.hex(),
+                "message_key_hex": message_key.hex(),
+                "note": "Captured for forward secrecy demonstration. Subsequent ciphertext requires new keys.",
+            }
+            log_path = os.path.join("malory_logs", "first_message_keys.jsonl")
+            with open(log_path, "a", encoding="utf-8") as handle:
+                handle.write(json.dumps(entry) + "\n")
+        except Exception as exc:
+            self.error_handler.handle_error(exc, "record_first_message_key")
+
     # ------------------------------------------------------------------
     # Logging utility
     # ------------------------------------------------------------------
     def _print(self, message: str) -> None:
         with self.print_lock:
             print(message)
+
+    def _default_password(self) -> str:
+        assert self.username is not None
+        return f"{self.username}_state_123!"
+
+    @classmethod
+    def _password_meets_requirements(cls, password: str) -> bool:
+        return bool(cls.PASSWORD_PATTERN.match(password))
 
 
 def main() -> None:

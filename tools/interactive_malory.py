@@ -23,11 +23,9 @@ class RealMalory:
         alt_path = project_root / "src" / "network" / "malory_logs" / "intercepted_messages.json"
 
         if log_path is not None:
-            self.log_path = Path(log_path)
-        elif default_path.exists():
-            self.log_path = default_path
+            self.log_paths = [Path(log_path)]
         else:
-            self.log_path = alt_path
+            self.log_paths = [default_path, alt_path]
 
         self.messages: List[dict] = []
 
@@ -42,31 +40,46 @@ class RealMalory:
 
     def load_intercepted_messages(self) -> bool:
         """Load Malory's intercepted traffic from disk."""
-        if not self.log_path.exists():
-            print(f"No intercepted log found at {self.log_path}")
-            print("Start the demo server/clients to generate traffic first.")
+        any_loaded = False
+        for path in self.log_paths:
+            if not path or not path.exists():
+                continue
+
+            try:
+                with path.open("r", encoding="utf-8") as handle:
+                    for line in handle:
+                        line = line.strip()
+                        if not line:
+                            continue
+                        try:
+                            record = json.loads(line)
+                        except json.JSONDecodeError:
+                            continue
+                        record.setdefault("_source", str(path))
+                        self.messages.append(record)
+                any_loaded = True
+            except OSError as exc:
+                print(f"Failed to read intercepted log {path}: {exc}")
+
+        if not any_loaded:
+            print("No intercepted log found. Start the demo server/clients to generate traffic first.")
             return False
 
-        try:
-            with self.log_path.open("r", encoding="utf-8") as handle:
-                for line in handle:
-                    line = line.strip()
-                    if not line:
-                        continue
-                    try:
-                        self.messages.append(json.loads(line))
-                    except json.JSONDecodeError:
-                        continue
-
-            if not self.messages:
-                print("The intercepted log is empty.")
-                return False
-
-            self.messages.sort(key=lambda entry: entry.get("timestamp", 0))
-            return True
-        except OSError as exc:
-            print(f"Failed to read intercepted log: {exc}")
+        if not self.messages:
+            print("The intercepted logs are empty.")
             return False
+
+        seen_ids = set()
+        deduped: List[dict] = []
+        for entry in sorted(self.messages, key=lambda e: e.get("timestamp", 0)):
+            msg_id = entry.get("message_id")
+            key = (entry.get("from"), entry.get("to"), entry.get("sequence_number"), msg_id)
+            if key in seen_ids:
+                continue
+            seen_ids.add(key)
+            deduped.append(entry)
+        self.messages = deduped
+        return True
 
     def display_timeline(self) -> None:
         """Render a compact overview so the user can pick messages."""
@@ -75,7 +88,9 @@ class RealMalory:
             timestamp = message.get("timestamp")
             when = "unknown"
             if isinstance(timestamp, (int, float)) and timestamp:
-                when = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(timestamp / 1000))
+                # Server logs seconds, older exports might use ms — handle both.
+                seconds = timestamp / 1000 if timestamp > 2_000_000_000 else timestamp
+                when = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(seconds))
 
             direction = f"{self._sender_label(message)} -> {message.get('to', '?')}"
             sequence = message.get("sequence_number", "?")
@@ -162,10 +177,8 @@ class RealMalory:
     def run_secrecy_demo(self) -> None:
         """Load intercepted traffic and walk through the post-compromise story."""
         print("\n" + "=" * 80)
-        print("          MALORY'S POST-COMPROMISE SECURITY DEMONSTRATOR")
+        print(" POST-COMPROMISE SECURITY DEMONSTRATION ")
         print("=" * 80)
-        print("This walkthrough shows that a stolen Double Ratchet message key")
-        print("only unlocks the exact ciphertext it belongs to.")
 
         if not self.load_intercepted_messages():
             return
@@ -185,14 +198,39 @@ class RealMalory:
 
         if not neighbor_indices:
             print("\nNo adjacent messages found to demonstrate post-compromise security.")
-            return
+        else:
+            for label, index in neighbor_indices:
+                self.explain_attempt(label, key_hex, index)
 
-        for label, index in neighbor_indices:
-            self.explain_attempt(label, key_hex, index)
+        # Keep the session open so the user can try other combinations.
+        reuse_key = key_hex
+        while True:
+            print("\nEnter another message index to test (or 'r' to redisplay, 'q' to quit).")
+            follow_up = input("Index/command: ").strip()
+            if not follow_up:
+                continue
+            lowered = follow_up.lower()
+            if lowered in {"q", "quit", "exit"}:
+                break
+            if lowered in {"r", "refresh", "list"}:
+                self.display_timeline()
+                continue
+            try:
+                manual_index = int(follow_up)
+            except ValueError:
+                print("Unrecognized command. Use a numeric index, 'r', or 'q'.")
+                continue
+            if manual_index < 0 or manual_index >= len(self.messages):
+                print(f"Index out of range (0-{len(self.messages) - 1}).")
+                continue
+            supplied_key = input("Message key hex (leave blank to reuse last key): ").strip()
+            attempt_key = supplied_key or reuse_key
+            if not attempt_key:
+                print("No key provided. Aborting attempt.")
+                continue
+            reuse_key = attempt_key
+            self.explain_attempt("MANUAL", attempt_key, manual_index)
 
-        print("\n" + "=" * 80)
-        print("Demo complete: Double Ratchet rotated the key, so Malory's access")
-        print("is limited to the compromised ciphertext only.")
 
 
 def main() -> None:

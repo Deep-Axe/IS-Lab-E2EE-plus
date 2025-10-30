@@ -150,15 +150,6 @@ def TrySkippedMessageKeys(state, header, ciphertext, AD):
     dh_bytes = header.dh
     key = (dh_bytes, header.n)
 
-    # Check against serialized keys if necessary
-    if key not in state["MKSKIPPED"]:
-        for k_tuple, v in state["MKSKIPPED"].items():
-            if isinstance(k_tuple[0], x25519.X25519PublicKey):
-                 k_bytes = k_tuple[0].public_bytes(encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw)
-                 if k_bytes == dh_bytes and k_tuple[1] == header.n:
-                     key = k_tuple
-                     break
-
     if key in state["MKSKIPPED"]:
         mk = state["MKSKIPPED"][key]
         del state["MKSKIPPED"][key]
@@ -166,6 +157,24 @@ def TrySkippedMessageKeys(state, header, ciphertext, AD):
         unpadder = padding.PKCS7(256).unpadder()
         return unpadder.update(padded_plain_text) + unpadder.finalize()
     else:
+        # Backward compatibility: migrate keys stored with X25519PublicKey objects
+        for legacy_key in list(state["MKSKIPPED"].keys()):
+            if not isinstance(legacy_key, tuple) or len(legacy_key) != 2:
+                continue
+            legacy_dh, legacy_n = legacy_key
+            if legacy_n != header.n:
+                continue
+            if isinstance(legacy_dh, x25519.X25519PublicKey):
+                legacy_bytes = legacy_dh.public_bytes(
+                    encoding=serialization.Encoding.Raw,
+                    format=serialization.PublicFormat.Raw
+                )
+                if legacy_bytes == dh_bytes:
+                    mk = state["MKSKIPPED"].pop(legacy_key)
+                    state["MKSKIPPED"][key] = mk
+                    padded_plain_text = DECRYPT_DOUB_RATCH(mk, ciphertext, CONCAT(AD, header))
+                    unpadder = padding.PKCS7(256).unpadder()
+                    return unpadder.update(padded_plain_text) + unpadder.finalize()
         return None
 
 def SkipMessageKeys(state, until):
@@ -174,7 +183,11 @@ def SkipMessageKeys(state, until):
     if state["CKr"] != None:
         while state["Nr"] < until:
             state["CKr"], mk = KDF_CK(state["CKr"])
-            state["MKSKIPPED"][(state["DHr"], state["Nr"])] = mk
+            dh_bytes = state["DHr"].public_bytes(
+                encoding=serialization.Encoding.Raw,
+                format=serialization.PublicFormat.Raw
+            ) if state["DHr"] is not None else b""
+            state["MKSKIPPED"][(dh_bytes, state["Nr"])] = mk
             state["Nr"] += 1
 
 def DHRatchet(state, header):
@@ -383,11 +396,16 @@ class DoubleRatchetSession:
                 serializable_mkskipped = {}
                 for tuple_key, mk_val in value.items():
                     if isinstance(tuple_key, tuple) and len(tuple_key) == 2:
-                        dh_key_obj, n_val = tuple_key
-                        dh_key_bytes = dh_key_obj.public_bytes(
-                            encoding=serialization.Encoding.Raw,
-                            format=serialization.PublicFormat.Raw
-                        )
+                        dh_component, n_val = tuple_key
+                        if isinstance(dh_component, x25519.X25519PublicKey):
+                            dh_key_bytes = dh_component.public_bytes(
+                                encoding=serialization.Encoding.Raw,
+                                format=serialization.PublicFormat.Raw
+                            )
+                        else:
+                            dh_key_bytes = bytes(dh_component) if isinstance(dh_component, (bytes, bytearray)) else None
+                        if dh_key_bytes is None:
+                            continue
                         key_str = f"{serialize(dh_key_bytes)}:{n_val}"
                         serializable_mkskipped[key_str] = serialize(mk_val)
                 serializable_state[key] = serializable_mkskipped
@@ -417,8 +435,7 @@ class DoubleRatchetSession:
                         dh_b64, n_str = key_str.split(':', 1)
                         dh_bytes = deserialize(dh_b64)
                         n_val = int(n_str)
-                        dh_key = x25519.X25519PublicKey.from_public_bytes(dh_bytes)
-                        mkskipped_dict[(dh_key, n_val)] = deserialize(mk_val)
+                        mkskipped_dict[(dh_bytes, n_val)] = deserialize(mk_val)
                     except:
                         continue
                 self.state[key] = mkskipped_dict
