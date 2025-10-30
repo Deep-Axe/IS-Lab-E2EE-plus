@@ -13,3 +13,5 @@ __pycache__/
 src/network/ratchet_states/*.enc
 src/network/malory_logs/intercepted_messages.json
 src/network/malory_logs/malory_analysis.txt
+/.vscode
+.vscode/*.json
