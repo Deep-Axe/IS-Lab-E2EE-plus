@@ -1,8 +1,6 @@
-# Double Ratchet End-to-End Encryption Demo - Enhanced Edition
-
+# Double Ratchet End-to-End Encryption Demo 
 ## Overview
 
-## Enhanced Features
 
 ### Core Cryptographic Implementation
 
@@ -25,7 +23,6 @@
 
 ### Architecture Components
 
-- **Enhanced Clients**: Alice and Bob with full production-like features
 - **Message Relay Server**: Handles key exchange and message forwarding
 - **State Manager**: Encrypted persistent storage with backup/restore
 - **Error Handler**: Centralized error management with recovery suggestions
@@ -43,7 +40,7 @@
 - **Message Authentication**: HMAC-SHA256
 - **State Encryption**: AES-256-CBC with PBKDF2 (100,000 iterations)
 
-### Enhanced Message Format
+### Message Format
 
 ```json
 {
@@ -75,16 +72,6 @@
 - **Error Recovery**: Comprehensive exception handling with recovery suggestions
 - **Key Rotation**: Automatic DH ratchet advancement per Double Ratchet spec
 
-## File Structure
-
-### Core Implementation
-
-- `double_ratchet.py` - Complete Double Ratchet cryptographic implementation
-- `enhanced_alice.py` - Alice client with all production-like features
-- `enhanced_bob.py` - Bob client with comprehensive enhancements
-- `enhanced_server.py` - Message relay server with X3DH support
-- `enhanced_malory.py` - Advanced cryptanalysis and traffic analysis tool
-
 ### Modules
 
 - `state_manager.py` - Encrypted persistent state with backup/restore
@@ -94,36 +81,10 @@
 
 ## Usage Instructions
 
-### 1. Enhanced Demo (Recommended)
-
-**Terminal 1 - Start Enhanced Server:**
-
-```bash
-python enhanced_server.py
-```
-
-**Terminal 2 - Run Enhanced Alice:**
-
-```bash
-python enhanced_alice.py
-```
-
-**Terminal 3 - Run Enhanced Bob:**
-
-```bash
-python enhanced_bob.py
-```
-
-**Terminal 4 - Run Enhanced Malory (Analysis):**
-
-```bash
-python enhanced_malory.py
-```
-
 **Optional - Multi-Contact Client (single terminal):**
 
 ```bash
-python run.py multi-client
+python run.py multi-client <reg_user>
 ```
 
 Register each demo user with `python -m tools.register_user` before logging in. Launch one instance per user, set the active contact with `use <name>`, and exchange messages without restarting the client for each peer.
@@ -166,57 +127,6 @@ Then open `http://localhost:8080/` to watch intercepted traffic, sealed-sender h
 - Timestamp validation with clock skew tolerance
 - Sequence number gap detection
 
-## Educational Value
-
-This enhanced implementation demonstrates:
-
-1. **Real-World Complexity**: Shows what production Double Ratchet looks like
-2. **Error Handling**: Comprehensive error management and recovery patterns
-3. **State Persistence**: How to securely store and restore cryptographic state
-4. **Message Protocol Design**: Versioned message formats with metadata
-5. **Security Validation**: Replay protection and message validation techniques
-6. **Key Management**: X3DH integration and key lifecycle management
-7. **Monitoring & Analysis**: Error tracking and cryptographic analysis tools
-
-## Security Analysis
-
-### Cryptographic Strengths
-
-- ✅ Perfect Forward Secrecy - Past messages remain secure
-- ✅ Post-Compromise Security - Future messages secure after key compromise
-- ✅ Message Authentication - HMAC prevents tampering
-- ✅ Proper Key Derivation - HKDF ensures key independence
-- ✅ Replay Protection - Message IDs prevent replay attacks
-
-### Educational Limitations
-
-- **Simplified X3DH**: Basic implementation without full prekey management
-- **Demo Certificate Validation**: No real certificate verification
-- **Local Storage Only**: No distributed key server integration
-- **Basic Replay Protection**: Simplified message ID tracking
-- **Educational Networking**: Not production-grade networking code
-
-## Requirements
-
-- Python 3.7+
-- cryptography library (`pip install cryptography`)
-
-## Learning Outcomes
-
-After studying this enhanced implementation, students will understand:
-
-1. **Double Ratchet Protocol**: Complete algorithm with proper implementation
-2. **Production Considerations**: Error handling, state management, message formats
-3. **Cryptographic Engineering**: How to build secure, maintainable crypto systems
-4. **Security Analysis**: Traffic analysis and cryptographic validation techniques
-5. **Key Management**: X3DH integration and secure key lifecycle
-6. **System Architecture**: Modular design for cryptographic applications
-
-## Research Applications
-
-This codebase serves as a foundation for:
-
-- Double Ratchet protocol research
 - Secure messaging system development
 - Cryptographic protocol implementation studies
 - Post-quantum cryptography adaptation research
